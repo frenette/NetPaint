@@ -1,0 +1,38 @@
+the client should always be listening for server msges, and every server msg should update the
+model, and the model will then notify the observers and will then be drawn by the component 
+
+- The server will send a Vector<PaintObject> and we will draw it.
+- The client will send the server a 1 of 2 types of PaintObjects.
+	- 1 - is a tempObject that is attached to a client.
+	- 2 - is the permenantObject
+
+
+
+- on mouseReleased write to the server and you say to add it to the ArrayList<PaintObject>, and send msg to all clients to
+  add the new object.
+
+- on mouseDragged event write to the server for ArrayList<PaintObject> tempPaintObjects, you want to keep it all in order.
+  Keeping the z-axis layering is critical. Every time a mouse dragged event occurs you sent a msg to the clients with ONLY
+  the new object, and maybe have some data that tells the users which one to replace from their list.
+ 
+You do not draw shapes by dragging the mouse, only by clicking.
+ 
+ The canvas should be bigger than your default GUI size; it should be possible to scroll to different portions 
+ 
+ Drawing with MouseListener and MouseMotionListener:
+
+ Do not have an Image, BufferedImage, or any GUI component in your PaintObject class or anywhere in your model.
+ 
+ 
+ Client : 
+ 
+ should be an observer, and when the PaintObjectCOllection changes, it should send the information to the server,
+ but in the mean time it should also listen for other things and update the paintObjectCOllection.
+ 
+ 
+ TODO :
+  - On startup, you need to connect to the server and see if there is an existing set of values on the server
+
+  
+  - the readcompleationHandler should start up a new read completion handler, and keep it going and going
+  - the writeCompletionHandler should only be created when the update of the collection is done
