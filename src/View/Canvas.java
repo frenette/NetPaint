@@ -43,7 +43,7 @@ public class Canvas extends JComponent implements Observer {
 
 	Vector<PaintObject> paintObjects = paintObjectCollection.getPaintObjects();
 
-	if (paintObjectCollection.getPaintObjects() != null && paintObjectCollection.getPaintObjects().size() != 0) {
+	if (paintObjectCollection.getAllPaintObjects() != null && paintObjectCollection.getPaintObjects().size() != 0) {
 	    for (PaintObject obj : paintObjects) {
 		obj.draw(g);
 	    }
@@ -55,7 +55,6 @@ public class Canvas extends JComponent implements Observer {
 	/*
 	 * The paintObjectCollection has been updated
 	 */
-
 	this.repaint();
     }
 
@@ -85,16 +84,7 @@ public class Canvas extends JComponent implements Observer {
 
 		clicked = false;
 		paintObjectCollection.setTempPaintObjectEnd(e.getPoint());
-
-		/*
-		 * Testing
-		 */
-		System.out.println("I should be painting now");
-		System.out.println("tempPaintObject " + paintObjectCollection.getTempPaintObject());
-		paintObjectCollection.add();
-		/*
-		 * End testing
-		 */
+		paintObjectCollection.setTempPaintObjectAsPermenant();
 	    }
 	}
 
@@ -138,9 +128,8 @@ public class Canvas extends JComponent implements Observer {
 		/*
 		 * We are in the process of drawing a tempPaintObject
 		 */
-
+		
 		paintObjectCollection.setTempPaintObjectEnd(e.getPoint());
-
 	    }
 	}
     }

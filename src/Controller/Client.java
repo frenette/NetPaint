@@ -21,8 +21,9 @@ import model.PaintObject;
 
 public class Client implements Observer {
 
-    public static void main(String[] args) {
+    public void connectToServer() {
 	AsynchronousSocketChannel channel;
+	
 	try {
 	    channel = AsynchronousSocketChannel.open();
 	} catch (IOException ioe) {
@@ -31,6 +32,7 @@ public class Client implements Observer {
 	}
 
 	try {
+	    // blocking
 	    channel.connect(new InetSocketAddress("localhost", 9090)).get();
 	    System.out.printf("Client at %s connected%n", channel.getLocalAddress());
 	} catch (ExecutionException | InterruptedException eie) {
@@ -41,48 +43,52 @@ public class Client implements Observer {
 	    return;
 	}
 	
-	    /*
-	     * Testing
-	     */
-	    try {
-		ByteBuffer bytes = ByteBuffer.allocate(2048);
-		
-		Future<Integer> fut = channel.read(bytes);
-		
-		while(!fut.isDone()) {
-		    Thread.sleep(500);
-		}
-		
-		ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(bytes.array()));
-		Vector<PaintObject> vec = (Vector<PaintObject>) ois.readObject();
-		
-		for (PaintObject o : vec) {
-		    System.out.println(o);
-		}
-	    } catch (Exception e) {
-		// TODO Auto-generated catch block
-		e.printStackTrace();
+	/*
+	 * Once we have connected, constantly check to see if there is anything to read.
+	 */
+
+	/*
+	 * Testing
+	 */
+	try {
+	    ByteBuffer bytes = ByteBuffer.allocate(2048);
+
+	    Future<Integer> fut = channel.read(bytes);
+
+	    while (!fut.isDone()) {
+		Thread.sleep(500);
 	    }
-	    /*
-	     * End testing
-	     */
 
-//	Attachment att = new Attachment();
-//	att.channel = channel;
-//	att.isReadMode = false;
-//	att.buffer = ByteBuffer.allocate(2048);
-//	att.mainThd = Thread.currentThread();
-//
-//	byte[] data = "Hello".getBytes(CSUTF8);
-//	att.buffer.put(data);
-//	att.buffer.flip();
-//	channel.write(read);
+	    ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(bytes.array()));
+	    Vector<PaintObject> vec = (Vector<PaintObject>) ois.readObject();
 
-//	try {
-//	    att.mainThd.join();
-//	} catch (InterruptedException ie) {
-//	    System.out.println("Client terminating");
-//	}
+	    for (PaintObject o : vec) {
+		System.out.println(o);
+	    }
+	} catch (Exception e) {
+	    // TODO Auto-generated catch block
+	    e.printStackTrace();
+	}
+	/*
+	 * End testing
+	 */
+
+	// Attachment att = new Attachment();
+	// att.channel = channel;
+	// att.isReadMode = false;
+	// att.buffer = ByteBuffer.allocate(2048);
+	// att.mainThd = Thread.currentThread();
+	//
+	// byte[] data = "Hello".getBytes(CSUTF8);
+	// att.buffer.put(data);
+	// att.buffer.flip();
+	// channel.write(read);
+
+	// try {
+	// att.mainThd.join();
+	// } catch (InterruptedException ie) {
+	// System.out.println("Client terminating");
+	// }
     }
 
     @Override
@@ -167,22 +173,5 @@ public class Client implements Observer {
 	    System.err.println("Unable to obtain client socket channel’s " + "local address");
 	    return;
 	}
-
-	// Attachment att = new Attachment();
-	// att.channel = channel;
-	// att.isReadMode = false;
-	// att.buffer = ByteBuffer.allocate(2048);
-	// att.mainThd = Thread.currentThread();
-	//
-	// byte[] data = "Hello".getBytes(CSUTF8);
-	// att.buffer.put(data);
-	// att.buffer.flip();
-	// channel.write(att.buffer, att, new ReadWriteHandler());
-	//
-	// try {
-	// att.mainThd.join();
-	// } catch (InterruptedException ie) {
-	// System.out.println("Client terminating");
-	// }
     }
 }
