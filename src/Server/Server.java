@@ -2,23 +2,28 @@ package Server;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousServerSocketChannel;
 
 public class Server {
     
-    /*
-     * TODO :
-     * - keep track of all connections made
-     */
-    
-    
-    //
-
     private final static int PORT = 9090;
     private final static String HOST = "localhost";
+    
+    public static AsynchronousServerSocketChannel channelServer;
+    
+    public static ByteBuffer buf;
+    
+    public static ServerPaintObjectCollection serverPaintObjectCollection;
 
     public static void main(String[] args) {
-	AsynchronousServerSocketChannel channelServer;
+	buf = ByteBuffer.allocate(4096);
+	serverPaintObjectCollection = new ServerPaintObjectCollection();
+	
+	/*
+	 * Continuously accept incoming connections
+	 */
+	
 	try {
 	    channelServer = AsynchronousServerSocketChannel.open();
 	    channelServer.bind(new InetSocketAddress(HOST, PORT));
@@ -28,9 +33,7 @@ public class Server {
 	    return;
 	}
 
-	Attachment att = new Attachment();
-	att.channelServer = channelServer;
-	channelServer.accept(att, new ConnectionHandler());
+	channelServer.accept(new Server(), new ConnectionHandler());
 
 	try {
 	    Thread.currentThread().join();

@@ -9,10 +9,13 @@ import java.io.ObjectOutputStream;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousSocketChannel;
+import java.nio.channels.CompletionHandler;
 import java.util.Observable;
 import java.util.Vector;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+
+import Server.ServerPaintObjectCollection;
 
 public class PaintObjectCollection extends Observable {
 
@@ -149,37 +152,61 @@ public class PaintObjectCollection extends Observable {
 	}
 
 	System.out.println("I am about to read!");
-	Future<Integer> fut = this.channel.read(this.byteBuffer);
+	this.channel.read(this.byteBuffer, this, new CompletionHandler<Integer, PaintObjectCollection>() {
 
-	/*
-	 * TESTING
-	 */
-	while (!fut.isDone()) {
-	    try {
-		Thread.sleep(500);
-	    } catch (InterruptedException e) {
-		// TODO Auto-generated catch block
-		e.printStackTrace();
+	    @Override
+	    public void completed(Integer result, PaintObjectCollection attachment) {
+		// TODO Auto-generated method stub
+		System.out.println("I finished reading!");
+		ByteArrayInputStream bytes = new ByteArrayInputStream(attachment.byteBuffer.array());
+		try (ObjectInputStream ois = new ObjectInputStream(bytes)) {
+		    Vector<PaintObject> objs = (Vector<PaintObject>) ois.readObject();
+		    for (PaintObject o : objs) {
+			System.out.println(o);
+		    }
+
+		    setPaintObjects(objs);
+		    // this.channel.write(ByteBuffer.wrap(bytes.toByteArray()));
+		} catch (IOException | ClassNotFoundException e) {
+		    e.printStackTrace();
+		}
 	    }
-	}
-	System.out.println("I finished reading!");
 
-
-	// ObjectInputStream
-	ByteArrayInputStream bytes = new ByteArrayInputStream(this.byteBuffer.array());
-	try (ObjectInputStream ois = new ObjectInputStream(bytes)) {
-	    Vector<PaintObject> objs = (Vector<PaintObject>) ois.readObject();
-	    for (PaintObject o : objs) {
-		System.out.println(o);
+	    @Override
+	    public void failed(Throwable exc, PaintObjectCollection attachment) {
+		// TODO Auto-generated method stub
+		System.out.println("I just FAILED to send a msg to the client of the new Vector<PaintObject>");
 	    }
-	    // this.channel.write(ByteBuffer.wrap(bytes.toByteArray()));
-	} catch (IOException | ClassNotFoundException e) {
-	    e.printStackTrace();
-	}
-	/*
-	 * END TESTING
-	 */
+	});
 
+	// // TODO
+	// Future<Integer> fut = this.channel.read(this.byteBuffer);
+	//
+	// while (!fut.isDone()) {
+	// try {
+	// Thread.sleep(500);
+	// } catch (InterruptedException e) {
+	// // TODO Auto-generated catch block
+	// e.printStackTrace();
+	// }
+	// }
+	// System.out.println("I finished reading!");
+	//
+	//
+	// // ObjectInputStream
+	// ByteArrayInputStream bytes = new
+	// ByteArrayInputStream(this.byteBuffer.array());
+	// try (ObjectInputStream ois = new ObjectInputStream(bytes)) {
+	// Vector<PaintObject> objs = (Vector<PaintObject>) ois.readObject();
+	// for (PaintObject o : objs) {
+	// System.out.println(o);
+	// }
+	//
+	// setPaintObjects(objs);
+	// // this.channel.write(ByteBuffer.wrap(bytes.toByteArray()));
+	// } catch (IOException | ClassNotFoundException e) {
+	// e.printStackTrace();
+	// }
     }
 
 }

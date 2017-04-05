@@ -2,6 +2,13 @@ package Server;
 
 import java.awt.Color;
 import java.awt.Point;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.nio.ByteBuffer;
+import java.nio.channels.AsynchronousSocketChannel;
+import java.nio.channels.CompletionHandler;
+import java.util.HashMap;
 import java.util.Observable;
 import java.util.Vector;
 
@@ -10,45 +17,83 @@ import model.Rectangle;
 
 public class ServerPaintObjectCollection extends Observable {
 
-    private Vector<PaintObject> permenantPaintObjects;
-    private Vector<PaintObject> tempPaintObjects;
+    /*
+     * We need a list of all of the connections that have been made
+     */
+    private HashMap<AsynchronousSocketChannel, Client> clients = new HashMap<>();
+
+    public synchronized void addClient(Client client) {
+	this.clients.put(client.asynchronousSocketChannel, client);
+    }
+
+    public synchronized void removeClient(AsynchronousSocketChannel channel) {
+	this.clients.remove(channel);
+    }
+
+    public Client getClient(AsynchronousSocketChannel channel) {
+	return this.clients.get(channel);
+    }
+
+    // public synchroni
+    /*
+     * End testing
+     */
+
+    private Vector<PaintObject> paintObjects;
 
     public ServerPaintObjectCollection() {
-	this.permenantPaintObjects = new Vector<>();
-	this.tempPaintObjects = new Vector<>();
+	this.paintObjects = new Vector<>();
 
-	permenantPaintObjects.add(new Rectangle(Color.RED, new Point(0, 0), new Point(10, 100)));
-	permenantPaintObjects.add(new Rectangle(Color.BLUE, new Point(100, 100), new Point(980, 0)));
-	permenantPaintObjects.add(new Rectangle(Color.GREEN, new Point(20, 82), new Point(34, 0)));
-	permenantPaintObjects.add(new Rectangle(Color.BLACK, new Point(40, 73), new Point(40, 0)));
-	permenantPaintObjects.add(new Rectangle(Color.CYAN, new Point(320, 93), new Point(70, 0)));
-	permenantPaintObjects.add(new Rectangle(Color.ORANGE, new Point(430, 42), new Point(0, 90)));
+	paintObjects.add(new Rectangle(Color.RED, new Point(0, 0), new Point(10, 100)));
+	paintObjects.add(new Rectangle(Color.BLUE, new Point(100, 100), new Point(980, 0)));
+	paintObjects.add(new Rectangle(Color.GREEN, new Point(20, 82), new Point(34, 0)));
+	paintObjects.add(new Rectangle(Color.BLACK, new Point(40, 73), new Point(40, 0)));
+	paintObjects.add(new Rectangle(Color.CYAN, new Point(320, 93), new Point(70, 0)));
+	paintObjects.add(new Rectangle(Color.ORANGE, new Point(430, 42), new Point(0, 90)));
     }
 
-    public Vector<PaintObject> getPermenantPaintObjects() {
-	return this.permenantPaintObjects;
+    public Vector<PaintObject> getPaintObjects() {
+	return this.paintObjects;
     }
 
-    public void addPermenantPaintObject(PaintObject o) {
-	this.permenantPaintObjects.addElement(o);
-	this.setChanged();
-	this.notifyObservers();
-    }
+    public void addToPaintObjects(PaintObject o) {
+	this.paintObjects.addElement(o);
 
-    public Vector<PaintObject> getTempPaintObjects() {
-	return this.tempPaintObjects;
-    }
+	/*
+	 * Notify all clients
+	 */
+	// serialize all of the data
+	ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+	try (ObjectOutputStream oos = new ObjectOutputStream(bytes);) {
+	    oos.writeObject(this.getPaintObjects());
+	} catch (IOException e) {
+	    // TODO Auto-generated catch block
+	    e.printStackTrace();
+	}
 
-    public void addTempPaintObjects(PaintObject o) {
-	this.tempPaintObjects.addElement(o);
-	this.setChanged();
-	this.notifyObservers();
-    }
+	this.clients.forEach((AsynchronousSocketChannel key, Client client) ->  {
+	    client.asynchronousSocketChannel.write(ByteBuffer.wrap(bytes.toByteArray()), this,
+		    new CompletionHandler<Integer, ServerPaintObjectCollection>() {
 
-    public Vector<PaintObject> getAllPaintObjects() {
-	Vector<PaintObject> returnVector = new Vector<PaintObject>();
-	returnVector.addAll(this.permenantPaintObjects);
-	returnVector.addAll(this.tempPaintObjects);
-	return returnVector;
+			@Override
+			public void completed(Integer result, ServerPaintObjectCollection attachment) {
+			    // TODO Auto-generated method stub
+			    System.out.println("I just sent a msg to the client of the new Vector<PaintObject>");
+			}
+
+			@Override
+			public void failed(Throwable exc, ServerPaintObjectCollection attachment) {
+			    // TODO Auto-generated method stub
+			    System.out.println(
+				    "I just FAILED to send a msg to the client of the new Vector<PaintObject>");
+			}
+		    });
+	});
+	/*
+	 * End testing
+	 */
+
+//	this.setChanged();
+//	this.notifyObservers();
     }
 }

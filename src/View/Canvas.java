@@ -24,6 +24,24 @@ import model.Rectangle;
 
 public class Canvas extends JComponent implements Observer {
 
+    /*
+     * Testing
+     */
+    private Color currentColor;
+    
+    public Color getCurrentColor() {
+	return this.currentColor;
+    }
+    
+    public void setCurrentColor(Color color) {
+	this.currentColor = color;
+    }
+    
+//  private PaintObject PaintObjectType;
+    /*
+     * End testing
+     */
+    
     private PaintObjectCollection paintObjectCollection;
     private boolean clicked;
 

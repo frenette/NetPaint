@@ -7,22 +7,39 @@ import java.net.SocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.CompletionHandler;
+import java.util.Vector;
 
-public class ConnectionHandler implements CompletionHandler<AsynchronousSocketChannel, Attachment> {
+import model.PaintObject;
+
+public class ConnectionHandler implements CompletionHandler<AsynchronousSocketChannel, Server> {
+    @SuppressWarnings("static-access")
     @Override
-    public void completed(AsynchronousSocketChannel channelClient, Attachment att) {
+    public void completed(AsynchronousSocketChannel channelClient, Server att) {
 	try {
-	    SocketAddress clientAddr = channelClient.getRemoteAddress();
-	    System.out.printf("Accepted connection from %s%n", clientAddr);
-
+	    /*
+	     * Recursively create more connection handlers
+	     */
+	    att.channelServer.accept(att, new ConnectionHandler());
 	    /*
 	     * Testing Writing to the client
 	     */
-	    ServerPaintObjectCollection serverPaintObjectCollection = new ServerPaintObjectCollection();
 	    
+	    SocketAddress clientAddr = channelClient.getRemoteAddress();
+	    System.out.println("In ConnectionHandler");
+	    System.out.printf("Accepted connection from %s%n", clientAddr);
+
+	    /*
+	     *  TODO : send the existing Vector<PaintObject> paintObjects in serverPaintObjectCollection
+	     */
+	    
+	    /*
+	     * Testing sending an initial Vector<PaintObjects>
+	     */
+	    ServerPaintObjectCollection serverPaintObjectCollection = new ServerPaintObjectCollection();
+
 	    ByteArrayOutputStream bytes = new ByteArrayOutputStream();
 	    ObjectOutputStream oos = new ObjectOutputStream(bytes);
-	    oos.writeObject(serverPaintObjectCollection.getAllPaintObjects());
+	    oos.writeObject(serverPaintObjectCollection.getPaintObjects());
 	    channelClient.write(ByteBuffer.wrap(bytes.toByteArray()));
 	    
 	    try {
@@ -31,9 +48,19 @@ public class ConnectionHandler implements CompletionHandler<AsynchronousSocketCh
 		// TODO Auto-generated catch block
 		e.printStackTrace();
 	    }
+	    
 	    /*
-	     * End testing
+	     * End Testing of sending an initial Vector<PaintObjects>
 	     */
+	    
+	    /*
+	     * TODO : have the server constantly read from the channelClient
+	     */
+	    // create a Client and add it to the map of clients
+	    Client newClient = new Client(channelClient);
+	    att.serverPaintObjectCollection.addClient(newClient);
+	    channelClient.read(newClient.buf, att, new ReadCompletionHandler());
+	    
 
 	    // // create more handlers
 	    // att.channelServer.accept(att, this);
@@ -54,7 +81,7 @@ public class ConnectionHandler implements CompletionHandler<AsynchronousSocketCh
     }
 
     @Override
-    public void failed(Throwable t, Attachment att) {
-	System.out.println("Failed to accept connection");
+    public void failed(Throwable t, Server att) {
+	System.err.println("Failed to accept connection");
     }
 }
