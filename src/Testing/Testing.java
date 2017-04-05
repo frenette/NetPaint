@@ -12,10 +12,10 @@ import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.util.concurrent.ExecutionException;
 
-import Controller.Attachment;
 import Server.ReadWriteHandler;
 import model.PaintObject;
 import model.Rectangle;
+import network.Attachment;
 
 public class Testing {
 

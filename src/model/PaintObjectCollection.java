@@ -1,16 +1,34 @@
 package model;
 
 import java.awt.Point;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
+import java.nio.channels.AsynchronousSocketChannel;
 import java.util.Observable;
 import java.util.Vector;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 public class PaintObjectCollection extends Observable {
+
+    private final static int PORT = 9090;
+    private final static String HOST = "localhost";
+
+    public AsynchronousSocketChannel channel;
+    public ByteBuffer byteBuffer;
 
     private Vector<PaintObject> paintObjects;
     private PaintObject tempPaintObject;
 
     public PaintObjectCollection() {
 	this.paintObjects = new Vector<>();
+	this.byteBuffer = ByteBuffer.allocate(2048);
+	connectToServer();
     }
 
     public Vector<PaintObject> getAllPaintObjects() {
@@ -36,10 +54,11 @@ public class PaintObjectCollection extends Observable {
 
     public PaintObject getTempPaintObject() {
 	return this.tempPaintObject;
-    } /*
-       * The server only needs to know when we add the final object.
-       */
+    }
 
+    /*
+     * The server only needs to know when we add the final object.
+     */
     public void setTempPaintObject(PaintObject tempPaintObject) {
 	this.tempPaintObject = tempPaintObject;
 
@@ -67,9 +86,100 @@ public class PaintObjectCollection extends Observable {
      * we added a PaintObject
      */
     public void setTempPaintObjectAsPermenant() {
-	this.paintObjects.addElement(this.tempPaintObject);
-	this.setChanged();
-	this.notifyObservers();
+	/*
+	 * Notify server
+	 */
+
+	// get the tempPaintObject
+	PaintObject serializeTemp = this.tempPaintObject;
+
+	ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+	try (ObjectOutputStream oos = new ObjectOutputStream(bytes)) {
+	    oos.writeObject(serializeTemp);
+	    // TODO
+	    this.channel.write(ByteBuffer.wrap(bytes.toByteArray()));
+	} catch (IOException e) {
+	    e.printStackTrace();
+	}
+
+	// this.setChanged();
+	// this.notifyObservers();
+    }
+
+    /*
+     * Networking stuff
+     */
+
+    public void connectToServer() {
+	System.out.println("connectToServer()");
+
+	try {
+	    this.channel = AsynchronousSocketChannel.open();
+	} catch (IOException ioe) {
+	    System.err.println("Unable to open client socket channel");
+	    return;
+	}
+
+	try {
+	    // blocking
+	    this.channel.connect(new InetSocketAddress(HOST, PORT)).get();
+	    System.out.printf("Client at %s connected%n", channel.getLocalAddress());
+	} catch (ExecutionException | InterruptedException eie) {
+	    System.err.println("Server not responding");
+	    return;
+	} catch (IOException ioe) {
+	    System.err.println("Unable to obtain client socket channel’s " + "local address");
+	    return;
+	}
+
+	/*
+	 * Once we have connected, constantly check to see if there is anything
+	 * to read.
+	 */
+
+	System.out.println("null check");
+	while (this.byteBuffer == null) {
+	    try {
+		System.out.println("null check...");
+		Thread.sleep(500);
+	    } catch (InterruptedException e) {
+		// TODO Auto-generated catch block
+		e.printStackTrace();
+	    }
+	}
+
+	System.out.println("I am about to read!");
+	Future<Integer> fut = this.channel.read(this.byteBuffer);
+
+	/*
+	 * TESTING
+	 */
+	while (!fut.isDone()) {
+	    try {
+		Thread.sleep(500);
+	    } catch (InterruptedException e) {
+		// TODO Auto-generated catch block
+		e.printStackTrace();
+	    }
+	}
+	System.out.println("I finished reading!");
+
+
+	// ObjectInputStream
+	ByteArrayInputStream bytes = new ByteArrayInputStream(this.byteBuffer.array());
+	try (ObjectInputStream ois = new ObjectInputStream(bytes)) {
+	    Vector<PaintObject> objs = (Vector<PaintObject>) ois.readObject();
+	    for (PaintObject o : objs) {
+		System.out.println(o);
+	    }
+	    // this.channel.write(ByteBuffer.wrap(bytes.toByteArray()));
+	} catch (IOException | ClassNotFoundException e) {
+	    e.printStackTrace();
+	}
+	/*
+	 * END TESTING
+	 */
+
     }
 
 }

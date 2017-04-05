@@ -16,7 +16,7 @@ public class ConnectionHandler implements CompletionHandler<AsynchronousSocketCh
 	    System.out.printf("Accepted connection from %s%n", clientAddr);
 
 	    /*
-	     * Testing
+	     * Testing Writing to the client
 	     */
 	    ServerPaintObjectCollection serverPaintObjectCollection = new ServerPaintObjectCollection();
 	    
@@ -24,6 +24,13 @@ public class ConnectionHandler implements CompletionHandler<AsynchronousSocketCh
 	    ObjectOutputStream oos = new ObjectOutputStream(bytes);
 	    oos.writeObject(serverPaintObjectCollection.getAllPaintObjects());
 	    channelClient.write(ByteBuffer.wrap(bytes.toByteArray()));
+	    
+	    try {
+		Thread.sleep(500);
+	    } catch (InterruptedException e) {
+		// TODO Auto-generated catch block
+		e.printStackTrace();
+	    }
 	    /*
 	     * End testing
 	     */

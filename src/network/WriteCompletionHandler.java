@@ -1,4 +1,4 @@
-package Controller;
+package network;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
