@@ -101,16 +101,12 @@ public class PaintObjectCollection extends Observable {
 	ByteArrayOutputStream bytes = new ByteArrayOutputStream();
 	try (ObjectOutputStream oos = new ObjectOutputStream(bytes)) {
 	    oos.writeObject(serializeTemp);
-	    // TODO
 	    this.channel.write(ByteBuffer.wrap(bytes.toByteArray()));
 	    
 	    Thread.sleep(500);
 	} catch (IOException | InterruptedException e) {
 	    e.printStackTrace();
 	}
-
-	// this.setChanged();
-	// this.notifyObservers();
     }
 
     /*
@@ -144,48 +140,14 @@ public class PaintObjectCollection extends Observable {
 		System.out.println("null check...");
 		Thread.sleep(500);
 	    } catch (InterruptedException e) {
-		// TODO Auto-generated catch block
 		e.printStackTrace();
 	    }
 	}
 
 	/*
-	 * Read the initial Vector<PaintObject> from the server
+	 * Read the initial Vector<PaintObject> from the server and have it recursively call read
 	 */
-	this.channel.read(this.byteBuffer, this, new CompletionHandler<Integer, PaintObjectCollection>() {
-
-	    @Override
-	    public void completed(Integer result, PaintObjectCollection attachment) {
-		System.out.println("I finished the initial reading of Vector<PaintObject>.");
-		ByteArrayInputStream bytes = new ByteArrayInputStream(attachment.byteBuffer.array());
-		try (ObjectInputStream ois = new ObjectInputStream(bytes)) {
-		    Vector<PaintObject> objs = (Vector<PaintObject>) ois.readObject();
-		    
-		    for (PaintObject o : objs) {
-			System.out.println(o);
-		    }
-		    
-		    setPaintObjects(objs);
-		} catch (IOException | ClassNotFoundException e) {
-		    e.printStackTrace();
-		}
-		
-		// reset the ByteBuffer
-		byteBuffer.clear();
-		
-		/*
-		 * Begin the recursive reading of PaintObject
-		 */
-		channel.read(byteBuffer, attachment, new ReadCompletionHandler());
-		
-	    }
-
-	    @Override
-	    public void failed(Throwable exc, PaintObjectCollection attachment) {
-		// TODO Auto-generated method stub
-		System.out.println("I just FAILED to send a msg to the client of the new Vector<PaintObject>");
-	    }
-	});
+	this.channel.read(this.byteBuffer, this, new ReadCompletionHandler());
     }
 
 }

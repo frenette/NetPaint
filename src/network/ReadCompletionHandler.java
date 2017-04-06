@@ -21,19 +21,19 @@ public class ReadCompletionHandler implements CompletionHandler<Integer, PaintOb
 	ByteArrayInputStream bytes = new ByteArrayInputStream(attachment.byteBuffer.array());
 	try (ObjectInputStream ois = new ObjectInputStream(bytes)) {
 	    Vector<PaintObject> objs = (Vector<PaintObject>) ois.readObject();
-	    
+
 	    for (PaintObject o : objs) {
 		System.out.println(o);
 	    }
-	    
+
 	    attachment.setPaintObjects(objs);
 	} catch (IOException | ClassNotFoundException e) {
 	    e.printStackTrace();
 	}
-	
+
 	// reset the ByteBuffer
 	attachment.byteBuffer.clear();
-	
+
 	/*
 	 * Recursively create ReadCompletionHandler
 	 */
@@ -43,8 +43,7 @@ public class ReadCompletionHandler implements CompletionHandler<Integer, PaintOb
 
     @Override
     public void failed(Throwable exc, PaintObjectCollection attachment) {
-	// TODO Auto-generated method stub
-
+	System.err.println("ReadCompletionHandler failed");
     }
 
 }

@@ -8,15 +8,13 @@ import java.nio.channels.CompletionHandler;
 
 import model.PaintObject;
 
-public class ReadCompletionHandler implements CompletionHandler<Integer, Server> {
+public class ReadCompletionHandler implements CompletionHandler<Integer, Client> {
 
-    @SuppressWarnings("static-access")
     @Override
-    public void completed(Integer result, Server att) {
-	// TODO Auto-generated method stub
+    public void completed(Integer result, Client att) {
 	System.out.println("I completed in ReadCompletionHandler.");
 
-	ByteBuffer byteBuf = att.serverPaintObjectCollection.getClient(att.serverPaintObjectCollection.getFirst()).buf;
+	ByteBuffer byteBuf = att.buf;
 
 	if (byteBuf.position() != 0) {
 	    /*
@@ -27,26 +25,19 @@ public class ReadCompletionHandler implements CompletionHandler<Integer, Server>
 		System.out.println(o);
 		att.serverPaintObjectCollection.addToPaintObjects(o);
 	    } catch (IOException | ClassNotFoundException e) {
-		// TODO Auto-generated catch block
 		e.printStackTrace();
 	    }
 
 	    byteBuf.clear();
-	    att.serverPaintObjectCollection.getFirst().read(
-		    att.serverPaintObjectCollection.getClient(att.serverPaintObjectCollection.getFirst()).buf, att,
-		    new ReadCompletionHandler());
+	    att.asynchronousSocketChannel.read(att.buf, att, new ReadCompletionHandler());
 	} else {
 	    System.out.println("I left ReadCompletionHandler.");
-
-	    /*
-	     * TODO : remove the Client from the ServerPaintObjectCollection
-	     */
+	    att.serverPaintObjectCollection.removeClient(att.asynchronousSocketChannel);
 	}
     }
 
     @Override
-    public void failed(Throwable exc, Server attachment) {
-	// TODO Auto-generated method stub
+    public void failed(Throwable exc, Client attachment) {
 	System.err.println("I failed in ReadCompletionHandler.");
     }
 

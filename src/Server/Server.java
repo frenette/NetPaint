@@ -2,7 +2,6 @@ package Server;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousServerSocketChannel;
 
 public class Server {
@@ -11,13 +10,10 @@ public class Server {
     private final static String HOST = "localhost";
     
     public static AsynchronousServerSocketChannel channelServer;
-    
-    public static ByteBuffer buf;
-    
+        
     public static ServerPaintObjectCollection serverPaintObjectCollection;
 
     public static void main(String[] args) {
-	buf = ByteBuffer.allocate(4096);
 	serverPaintObjectCollection = new ServerPaintObjectCollection();
 	
 	/*

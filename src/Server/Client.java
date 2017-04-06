@@ -7,9 +7,11 @@ public class Client {
 
     public AsynchronousSocketChannel asynchronousSocketChannel;
     public ByteBuffer buf;
+    public ServerPaintObjectCollection serverPaintObjectCollection;
     
-    public Client(AsynchronousSocketChannel asynchronousSocketChannel) {
-	buf = ByteBuffer.allocate(4096);
+    public Client(AsynchronousSocketChannel asynchronousSocketChannel, ServerPaintObjectCollection serverPaintObjectCollection) {
+	buf = ByteBuffer.allocate(32768);
 	this.asynchronousSocketChannel = asynchronousSocketChannel;
+	this.serverPaintObjectCollection = serverPaintObjectCollection;
     }
 }
