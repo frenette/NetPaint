@@ -16,6 +16,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 import Server.ServerPaintObjectCollection;
+import network.ReadCompletionHandler;
 
 public class PaintObjectCollection extends Observable {
 
@@ -30,7 +31,8 @@ public class PaintObjectCollection extends Observable {
 
     public PaintObjectCollection() {
 	this.paintObjects = new Vector<>();
-	this.byteBuffer = ByteBuffer.allocate(2048);
+	this.byteBuffer = ByteBuffer.allocate(32768);
+//	this.byteBuffer = ByteBuffer.allocate(2048);
 	connectToServer();
     }
 
@@ -101,7 +103,9 @@ public class PaintObjectCollection extends Observable {
 	    oos.writeObject(serializeTemp);
 	    // TODO
 	    this.channel.write(ByteBuffer.wrap(bytes.toByteArray()));
-	} catch (IOException e) {
+	    
+	    Thread.sleep(500);
+	} catch (IOException | InterruptedException e) {
 	    e.printStackTrace();
 	}
 
@@ -110,9 +114,8 @@ public class PaintObjectCollection extends Observable {
     }
 
     /*
-     * Networking stuff
+     * Make the connection to the server
      */
-
     public void connectToServer() {
 	System.out.println("connectToServer()");
 
@@ -135,11 +138,6 @@ public class PaintObjectCollection extends Observable {
 	    return;
 	}
 
-	/*
-	 * Once we have connected, constantly check to see if there is anything
-	 * to read.
-	 */
-
 	System.out.println("null check");
 	while (this.byteBuffer == null) {
 	    try {
@@ -151,25 +149,35 @@ public class PaintObjectCollection extends Observable {
 	    }
 	}
 
-	System.out.println("I am about to read!");
+	/*
+	 * Read the initial Vector<PaintObject> from the server
+	 */
 	this.channel.read(this.byteBuffer, this, new CompletionHandler<Integer, PaintObjectCollection>() {
 
 	    @Override
 	    public void completed(Integer result, PaintObjectCollection attachment) {
-		// TODO Auto-generated method stub
-		System.out.println("I finished reading!");
+		System.out.println("I finished the initial reading of Vector<PaintObject>.");
 		ByteArrayInputStream bytes = new ByteArrayInputStream(attachment.byteBuffer.array());
 		try (ObjectInputStream ois = new ObjectInputStream(bytes)) {
 		    Vector<PaintObject> objs = (Vector<PaintObject>) ois.readObject();
+		    
 		    for (PaintObject o : objs) {
 			System.out.println(o);
 		    }
-
+		    
 		    setPaintObjects(objs);
-		    // this.channel.write(ByteBuffer.wrap(bytes.toByteArray()));
 		} catch (IOException | ClassNotFoundException e) {
 		    e.printStackTrace();
 		}
+		
+		// reset the ByteBuffer
+		byteBuffer.clear();
+		
+		/*
+		 * Begin the recursive reading of PaintObject
+		 */
+		channel.read(byteBuffer, attachment, new ReadCompletionHandler());
+		
 	    }
 
 	    @Override
@@ -178,35 +186,6 @@ public class PaintObjectCollection extends Observable {
 		System.out.println("I just FAILED to send a msg to the client of the new Vector<PaintObject>");
 	    }
 	});
-
-	// // TODO
-	// Future<Integer> fut = this.channel.read(this.byteBuffer);
-	//
-	// while (!fut.isDone()) {
-	// try {
-	// Thread.sleep(500);
-	// } catch (InterruptedException e) {
-	// // TODO Auto-generated catch block
-	// e.printStackTrace();
-	// }
-	// }
-	// System.out.println("I finished reading!");
-	//
-	//
-	// // ObjectInputStream
-	// ByteArrayInputStream bytes = new
-	// ByteArrayInputStream(this.byteBuffer.array());
-	// try (ObjectInputStream ois = new ObjectInputStream(bytes)) {
-	// Vector<PaintObject> objs = (Vector<PaintObject>) ois.readObject();
-	// for (PaintObject o : objs) {
-	// System.out.println(o);
-	// }
-	//
-	// setPaintObjects(objs);
-	// // this.channel.write(ByteBuffer.wrap(bytes.toByteArray()));
-	// } catch (IOException | ClassNotFoundException e) {
-	// e.printStackTrace();
-	// }
     }
 
 }

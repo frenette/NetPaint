@@ -35,11 +35,9 @@ public class ConnectionHandler implements CompletionHandler<AsynchronousSocketCh
 	    /*
 	     * Testing sending an initial Vector<PaintObjects>
 	     */
-	    ServerPaintObjectCollection serverPaintObjectCollection = new ServerPaintObjectCollection();
-
 	    ByteArrayOutputStream bytes = new ByteArrayOutputStream();
 	    ObjectOutputStream oos = new ObjectOutputStream(bytes);
-	    oos.writeObject(serverPaintObjectCollection.getPaintObjects());
+	    oos.writeObject(att.serverPaintObjectCollection.getPaintObjects());
 	    channelClient.write(ByteBuffer.wrap(bytes.toByteArray()));
 	    
 	    try {
@@ -60,21 +58,6 @@ public class ConnectionHandler implements CompletionHandler<AsynchronousSocketCh
 	    Client newClient = new Client(channelClient);
 	    att.serverPaintObjectCollection.addClient(newClient);
 	    channelClient.read(newClient.buf, att, new ReadCompletionHandler());
-	    
-
-	    // // create more handlers
-	    // att.channelServer.accept(att, this);
-	    // Attachment newAtt = new Attachment();
-	    //
-	    // newAtt.channelServer = att.channelServer;
-	    // newAtt.channelClient = channelClient;
-	    // newAtt.isReadMode = true;
-	    // newAtt.buffer = ByteBuffer.allocate(2048);
-	    // newAtt.clientAddr = clientAddr;
-	    //
-	    //
-	    // ReadWriteHandler rwh = new ReadWriteHandler();
-	    // channelClient.read(newAtt.buffer, newAtt, rwh);
 	} catch (IOException ioe) {
 	    ioe.printStackTrace();
 	}

@@ -3,8 +3,6 @@ package View;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.Point;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
@@ -14,6 +12,9 @@ import java.util.Vector;
 
 import javax.swing.JComponent;
 
+import model.Image;
+import model.Line;
+import model.Oval;
 import model.PaintObject;
 import model.PaintObjectCollection;
 import model.Rectangle;
@@ -28,20 +29,30 @@ public class Canvas extends JComponent implements Observer {
      * Testing
      */
     private Color currentColor;
-    
+
     public Color getCurrentColor() {
 	return this.currentColor;
     }
-    
+
     public void setCurrentColor(Color color) {
 	this.currentColor = color;
     }
-    
-//  private PaintObject PaintObjectType;
+
+    private String paintObjectType;
+
+    public String getPaintObjectType() {
+	return this.paintObjectType;
+    }
+
+    public void setPaintObjectType(String s) {
+	this.paintObjectType = s;
+    }
+
+    // private PaintObject PaintObjectType;
     /*
      * End testing
      */
-    
+
     private PaintObjectCollection paintObjectCollection;
     private boolean clicked;
 
@@ -54,6 +65,8 @@ public class Canvas extends JComponent implements Observer {
 	this.paintObjectCollection = new PaintObjectCollection();
 	this.paintObjectCollection.addObserver(this);
 	this.clicked = false;
+
+	this.paintObjectType = "oval";
     }
 
     public void paintComponent(Graphics g) {
@@ -80,7 +93,7 @@ public class Canvas extends JComponent implements Observer {
 
 	@Override
 	public void mouseClicked(MouseEvent e) {
-//	    System.out.println("mouseClicked(MouseEvent e): " + e);
+	    // System.out.println("mouseClicked(MouseEvent e): " + e);
 	    /*
 	     * Fires when the mouse has been clicked, and then released
 	     */
@@ -92,8 +105,16 @@ public class Canvas extends JComponent implements Observer {
 		 */
 
 		clicked = true;
-		// TODO - need to know the PaintObject type
-		paintObjectCollection.setTempPaintObject(new Rectangle(Color.BLUE, e.getPoint(), e.getPoint()));
+
+		if (paintObjectType.equalsIgnoreCase("oval")) {
+		    paintObjectCollection.setTempPaintObject(new Oval(currentColor, e.getPoint(), e.getPoint()));
+		} else if (paintObjectType.equalsIgnoreCase("rectangle")) {
+		    paintObjectCollection.setTempPaintObject(new Rectangle(currentColor, e.getPoint(), e.getPoint()));
+		} else if (paintObjectType.equalsIgnoreCase("line")) {
+		    paintObjectCollection.setTempPaintObject(new Line(currentColor, e.getPoint(), e.getPoint()));
+		} else {
+		    paintObjectCollection.setTempPaintObject(new Image(currentColor, e.getPoint(), e.getPoint()));
+		}
 	    } else {
 		/*
 		 * If the mouse has already been clicked we are saying it is a
@@ -146,7 +167,7 @@ public class Canvas extends JComponent implements Observer {
 		/*
 		 * We are in the process of drawing a tempPaintObject
 		 */
-		
+
 		paintObjectCollection.setTempPaintObjectEnd(e.getPoint());
 	    }
 	}

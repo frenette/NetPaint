@@ -5,7 +5,7 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
 
-class Oval extends PaintObject {
+public class Oval extends PaintObject {
 
     public Oval(Color color, Point start, Point end) {
 	super(color, start, end);

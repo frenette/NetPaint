@@ -22,6 +22,10 @@ public class ServerPaintObjectCollection extends Observable {
      */
     private HashMap<AsynchronousSocketChannel, Client> clients = new HashMap<>();
 
+    public synchronized AsynchronousSocketChannel getFirst() {
+	return this.clients.keySet().iterator().next();
+    }
+
     public synchronized void addClient(Client client) {
 	this.clients.put(client.asynchronousSocketChannel, client);
     }
@@ -30,7 +34,7 @@ public class ServerPaintObjectCollection extends Observable {
 	this.clients.remove(channel);
     }
 
-    public Client getClient(AsynchronousSocketChannel channel) {
+    public synchronized Client getClient(AsynchronousSocketChannel channel) {
 	return this.clients.get(channel);
     }
 
@@ -71,7 +75,22 @@ public class ServerPaintObjectCollection extends Observable {
 	    e.printStackTrace();
 	}
 
-	this.clients.forEach((AsynchronousSocketChannel key, Client client) ->  {
+	/*
+	 * Testing
+	 */
+	System.out.println("=================================");
+	System.out.println("Size of buffer: " + bytes.size());
+	for (PaintObject obj : this.paintObjects) {
+	    System.out.println(obj);
+	}
+	System.out.println("=================================");
+	/*
+	 * End testing
+	 */
+
+	System.out.println("I should be notifying al of the new clients of the change");
+
+	this.clients.forEach((AsynchronousSocketChannel key, Client client) -> {
 	    client.asynchronousSocketChannel.write(ByteBuffer.wrap(bytes.toByteArray()), this,
 		    new CompletionHandler<Integer, ServerPaintObjectCollection>() {
 
@@ -93,7 +112,7 @@ public class ServerPaintObjectCollection extends Observable {
 	 * End testing
 	 */
 
-//	this.setChanged();
-//	this.notifyObservers();
+	// this.setChanged();
+	// this.notifyObservers();
     }
 }
