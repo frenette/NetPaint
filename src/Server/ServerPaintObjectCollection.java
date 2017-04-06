@@ -48,12 +48,12 @@ public class ServerPaintObjectCollection extends Observable {
     public ServerPaintObjectCollection() {
 	this.paintObjects = new Vector<>();
 
-	paintObjects.add(new Rectangle(Color.RED, new Point(0, 0), new Point(10, 100)));
-	paintObjects.add(new Rectangle(Color.BLUE, new Point(100, 100), new Point(980, 0)));
-	paintObjects.add(new Rectangle(Color.GREEN, new Point(20, 82), new Point(34, 0)));
-	paintObjects.add(new Rectangle(Color.BLACK, new Point(40, 73), new Point(40, 0)));
-	paintObjects.add(new Rectangle(Color.CYAN, new Point(320, 93), new Point(70, 0)));
-	paintObjects.add(new Rectangle(Color.ORANGE, new Point(430, 42), new Point(0, 90)));
+//	paintObjects.add(new Rectangle(Color.RED, new Point(0, 0), new Point(10, 100)));
+//	paintObjects.add(new Rectangle(Color.BLUE, new Point(100, 100), new Point(980, 0)));
+//	paintObjects.add(new Rectangle(Color.GREEN, new Point(20, 82), new Point(34, 0)));
+//	paintObjects.add(new Rectangle(Color.BLACK, new Point(40, 73), new Point(40, 0)));
+//	paintObjects.add(new Rectangle(Color.CYAN, new Point(320, 93), new Point(70, 0)));
+//	paintObjects.add(new Rectangle(Color.ORANGE, new Point(430, 42), new Point(0, 90)));
     }
 
     public Vector<PaintObject> getPaintObjects() {
@@ -71,7 +71,6 @@ public class ServerPaintObjectCollection extends Observable {
 	try (ObjectOutputStream oos = new ObjectOutputStream(bytes);) {
 	    oos.writeObject(this.getPaintObjects());
 	} catch (IOException e) {
-	    // TODO Auto-generated catch block
 	    e.printStackTrace();
 	}
 
@@ -111,8 +110,5 @@ public class ServerPaintObjectCollection extends Observable {
 	/*
 	 * End testing
 	 */
-
-	// this.setChanged();
-	// this.notifyObservers();
     }
 }
